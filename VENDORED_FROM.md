@@ -54,9 +54,32 @@ All copied from `skills/<name>/` in the source repo at commit `c3ba131`, unmodif
 | `tvt-gov-attest` | Invocation Ledger — every dispatch decision + specialist invocation is attested (§3.5) |
 
 **Explicitly excluded (out of scope per FR-013 — not sales/intel/pm/create, or not a dispatch
-target):** `tvt-core-*` (7), `tvt-os-*` (5), `tvt-grill-me`, `tvt-init`, `tvt-web-artifacts-builder`,
-and `tvt-sales-engine` itself (the router this package's `tvt-sales-agent` does not modify or
-depend on — `plan.md` §1).
+target):** `tvt-core-*` (7), `tvt-os-*` (5), `tvt-grill-me`, `tvt-web-artifacts-builder`, and
+`tvt-sales-engine` itself (the router this package's `tvt-sales-agent` does not modify or depend
+on — `plan.md` §1).
+
+**Vendored utility, not a roster capability (added 2026-07-07):**
+
+| Skill | Why vendored |
+|---|---|
+| `tvt-init` | One-time setup check/install for the `pptx` global skill dependency (see "External (unvendorable) dependencies" below). Not a sales-pipeline job (no JTBD step applies), so it's discoverable via `CAPABILITIES.md`/`SKILL.md`, not dispatched through `roster.yml` — same treatment as `tvt-gov-guard`/`tvt-gov-attest`. |
+
+## External (unvendorable) dependencies — real gap, not hidden (added 2026-07-07)
+
+Self-containment (T0/T15) covers everything vendorable. Four of the 22 roster capabilities'
+underlying skills additionally depend on Anthropic global skills this package's license/scope
+cannot vendor — present in most Claude Code/Desktop installs already, but not guaranteed:
+
+| Global skill needed | Used by | Severity if missing | Fix |
+|---|---|---|---|
+| `pptx` (Anthropic `document-skills` bundle) | `tvt-create-pptx` (→ `pptx-build`), `tvt-tavantize` (→ `tavantize-brand`), `tvt-sales-pack` (→ `meeting-prep-pack`), `tvt-create-deck` (→ `deck-build`, transitively via `tvt-create-pptx`) | **High** — these 4 capabilities' core function (producing a real .pptx) is blocked without it | Run `tvt-init` once after install (vendored above) — checks and installs via Claude Code's own plugin marketplace, never copies `pptx`'s files (its license forbids redistribution) |
+| `algorithmic-art` | `tvt-create-design` mode=generative only | Low — 1 of 6 modes | Not automated; install Anthropic's `algorithmic-art` skill directly if that mode is needed |
+| `slack-gif-creator` | `tvt-create-design` mode=gif only | Low — 1 of 6 modes | Same |
+| `theme-factory` | `tvt-create-design` mode=theme only | Low — 1 of 6 modes | Same |
+
+`visual-design` (→ `tvt-create-design`)'s other 3 modes (canvas, frontend, artifact) need none of
+these. `pptx` is the one dependency worth automating (hence `tvt-init`); the other three are
+narrow, single-mode, low-severity, and not worth a setup script for this pass.
 
 ## How to check for drift (manual, until a CI job automates this — deferred to MVP)
 

@@ -32,12 +32,23 @@ coverage (O13: S7, zero coverage; O1: S1, partial coverage) as candidates for th
 new skill" suggestion path, sourced from a real, separate JTBD gap-analysis document rather
 than waiting for usage to rediscover them.
 
-## Vendored skill family (24)
+## Setup (run this first)
+
+**`tvt-init`** — one-time check/install for this package's one external dependency
+(Anthropic's `pptx` skill, needed by 4 capabilities that produce real `.pptx` files:
+`pptx-build`, `tavantize-brand`, `meeting-prep-pack`, `deck-build`). License forbids
+vendoring it directly, so `tvt-init` checks whether you already have it and installs it via
+Claude Code's own plugin marketplace if not — never copies its files. Most Claude Code/
+Desktop installs already have it; if so, this is a fast no-op. See `VENDORED_FROM.md`'s
+"External (unvendorable) dependencies" section for the full list (3 more, narrower, single-
+optional-mode dependencies of `visual-design`).
+
+## Vendored skill family (25)
 
 See `VENDORED_FROM.md` for the full list + source provenance (commit hash, per-skill). 22
 roster-family skills (intel/sales/pm/create) + `tvt-tavantize` (branding) + 2 governance
-dependencies (`tvt-gov-guard`, `tvt-gov-attest`) used by the dispatch/factory mechanism
-itself, not as dispatch targets.
+dependencies (`tvt-gov-guard`, `tvt-gov-attest`) + `tvt-init` (setup) — the last 3 used by
+the dispatch/factory/setup mechanism itself, not as roster dispatch targets.
 
 ## Governance & measurement
 
