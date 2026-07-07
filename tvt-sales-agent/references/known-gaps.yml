@@ -1,0 +1,44 @@
+# known-gaps.yml — pre-registered capability gaps (FR-017, plan.md §8)
+#
+# Sourced verbatim from specs/006-g-sales-engine/docs/jtbd-pipeline-gaps.md's deterministic
+# tvt-pm-jtbd (Ulwick ODI) scoring, cross-checked against g-mature-assess's real sales-gtm KPI
+# catalog (S1/S3/S7/S8 have zero existing KPI coverage -- matches these scored gaps exactly).
+#
+# These are pre-registered "propose a new skill" candidates for T9's narrowed-factory human-
+# suggestion path (per the T4 spike result: recombination-only, genuine gaps route to a human
+# suggestion, never an autonomous from-scratch build) -- registered here so they surface on day
+# one instead of waiting for a real user request to trigger gap-detection.
+#
+# Red-team caveat (carried forward from the JTBD doc's own contrarian panel, not re-litigated
+# here): both gaps below are LLM-estimated-input hypotheses, not seller-validated findings. The
+# panel argued S1 likely dominates S7 despite the tied opportunity score (a starved top-of-funnel
+# makes S7 moot). Treat both as legitimate candidates for the factory to surface, not settled
+# roadmap commitments.
+
+known_gaps:
+  - id: O13
+    jtbd_step: S7
+    opportunity_score: 15.0
+    coverage: none
+    outcome: >
+      Minimize time to detect a delivered pilot/POC has stalled before it jeopardizes conversion
+      to production.
+    friction: >
+      No standing signal-check on delivered pilots; stalls surface only when someone happens to
+      notice or the client raises it (e.g. pilot hours going weeks overdue, unflagged). Matches an
+      already-logged real pattern in Tavant's own pilot portfolio almost exactly.
+    source: specs/006-g-sales-engine/docs/jtbd-pipeline-gaps.md
+
+  - id: O1
+    jtbd_step: S1
+    opportunity_score: 15.0
+    coverage: partial
+    covered_by: prospect-scan
+    outcome: >
+      Minimize time to scan the full target list and flag real signal.
+    friction: >
+      Manual, one-account-at-a-time scanning; no parallel sweep across the whole target list;
+      signal-spotting is ad hoc. prospect-scan (tvt-intel-dispatch) covers on-demand parallel
+      fan-out research, but not a standing/continuous monitoring sweep -- the specific friction
+      this outcome names.
+    source: specs/006-g-sales-engine/docs/jtbd-pipeline-gaps.md

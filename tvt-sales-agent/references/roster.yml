@@ -18,54 +18,63 @@ capabilities:
   # --- Intel family (9) ---
   - capability_slug: account-research-deep
     invokes: tvt-intel-deep
+    jtbd_step: S2
     trigger_patterns: ["research", "deep dive", "build intel on", "what do we know about", "prep for a first meeting"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: account-research-customer
     invokes: tvt-intel-customer
+    jtbd_step: S2
     trigger_patterns: ["5-step", "full customer intelligence", "financial structure", "platform mapping"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: account-dossier
     invokes: tvt-intel-dossier
+    jtbd_step: S2
     trigger_patterns: ["dossier", "full story", "relationship map", "account story"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: account-qbr
     invokes: tvt-intel-qbr
+    jtbd_step: S8
     trigger_patterns: ["qbr", "quarterly review", "strategic review topics"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: competitor-fanout
     invokes: tvt-intel-fanout
+    jtbd_step: S2
     trigger_patterns: ["research all the competitors", "fan out on these names", "dig into everyone mentioned"]
     depends_on: [account-research-deep]
     outward_facing: false
 
   - capability_slug: intel-factcheck
     invokes: tvt-intel-factcheck
+    jtbd_step: S3
     trigger_patterns: ["fact check", "verify the intel", "audit the research"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: intel-pipeline
     invokes: tvt-intel-pipeline
+    jtbd_step: S2
     trigger_patterns: ["full research on", "run the pipeline on", "intel pipeline", "prospect research"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: prospect-scan
     invokes: tvt-intel-dispatch
+    jtbd_step: S1
     trigger_patterns: ["research multiple prospects", "parallel research", "scan target list", "find new", "new prospects"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: pattern-extraction
     invokes: tvt-intel-flywheel
+    jtbd_step: S9
     trigger_patterns: ["patterns across clients", "extract a playbook", "reusable ip", "what should become an accelerator"]
     depends_on: []
     outward_facing: false
@@ -73,36 +82,42 @@ capabilities:
   # --- Sales family (6) ---
   - capability_slug: prospect-score
     invokes: tvt-sales-prospect
+    jtbd_step: S1
     trigger_patterns: ["who should i focus on", "who to call", "who should i call", "confidence score", "ranked shortlist", "capacity"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: pov-synthesis
     invokes: tvt-sales-pov
+    jtbd_step: S4
     trigger_patterns: ["build a pov", "point of view", "business value hypothesis", "draft a pov for"]
     depends_on: [account-research-deep]
     outward_facing: false
 
   - capability_slug: meeting-prep-pack
     invokes: tvt-sales-pack
+    jtbd_step: S5
     trigger_patterns: ["prep for", "presales pack", "get me ready for", "build a presales pack"]
     depends_on: [pov-synthesis]
     outward_facing: false
 
   - capability_slug: engagement-proposal
     invokes: tvt-sales-engagement-proposal
+    jtbd_step: S6
     trigger_patterns: ["engagement proposal", "workshop proposal", "proposal doc"]
     depends_on: [pov-synthesis]
     outward_facing: false
 
   - capability_slug: sales-distill
     invokes: tvt-sales-distill
+    jtbd_step: S9
     trigger_patterns: ["distill sales", "refine sales playbook", "sharpen sales patterns"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: pitch-content-strategy
     invokes: tvt-sales-pitch
+    jtbd_step: S4
     trigger_patterns: ["sales deck content", "pitch strategy", "what should the slides say", "content brief"]
     depends_on: []
     outward_facing: false
@@ -110,12 +125,14 @@ capabilities:
   # --- PM family (2) ---
   - capability_slug: product-opportunity-scoring
     invokes: tvt-pm-jtbd
+    jtbd_step: S2
     trigger_patterns: ["jobs to be done", "jtbd", "job map", "where should we improve", "what's underserved"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: product-roadmap-grow
     invokes: tvt-pm-grow
+    jtbd_step: S8
     trigger_patterns: ["market dominance", "product roadmap", "grow this product", "what to build and what to say"]
     depends_on: [product-opportunity-scoring]
     outward_facing: false
@@ -123,30 +140,35 @@ capabilities:
   # --- Create family (4) + tavantize ---
   - capability_slug: deck-build
     invokes: tvt-create-deck
+    jtbd_step: S5
     trigger_patterns: ["build a deck", "create a presentation", "make slides", "improve this deck"]
     depends_on: [pitch-content-strategy]
     outward_facing: false
 
   - capability_slug: visual-design
     invokes: tvt-create-design
+    jtbd_step: S5
     trigger_patterns: ["design a poster", "web ui", "landing page", "dashboard design", "generative art"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: explainer-doc
     invokes: tvt-create-explainer
+    jtbd_step: S5
     trigger_patterns: ["explainer", "one-pager on how", "make the case for", "domain explainer"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: pptx-build
     invokes: tvt-create-pptx
+    jtbd_step: S5
     trigger_patterns: ["pptx", "powerpoint", "screenshot slides", "export slides to images"]
     depends_on: []
     outward_facing: false
 
   - capability_slug: tavantize-brand
     invokes: tvt-tavantize
+    jtbd_step: S5
     trigger_patterns: ["tavantize", "tavant template", "tavant branding", "tavant deck"]
     depends_on: []
     outward_facing: false

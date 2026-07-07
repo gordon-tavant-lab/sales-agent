@@ -169,3 +169,53 @@ def test_tier2_validate_is_case_and_whitespace_tolerant_for_none(roster):
 
     assert validate_tier2_answer("  none  ", roster)["status"] == "no_match"
     assert validate_tier2_answer("None", roster)["status"] == "no_match"
+
+
+# --- T16: JTBD-step alignment + known-gaps registration ---
+
+VALID_JTBD_STEPS = {"S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"}
+
+
+def test_every_capability_has_a_valid_jtbd_step(roster):
+    for cap in roster["capabilities"]:
+        assert "jtbd_step" in cap, cap["capability_slug"]
+        assert cap["jtbd_step"] in VALID_JTBD_STEPS, "{}: {}".format(
+            cap["capability_slug"], cap.get("jtbd_step")
+        )
+
+
+def test_s7_has_zero_roster_coverage_matching_the_confirmed_gap(roster):
+    # This is not a bug -- it's the confirmed finding (O13, jtbd-pipeline-gaps.md). If this
+    # test ever fails because a capability WAS added under S7, that's good news worth noticing
+    # explicitly, not a silent pass -- update known-gaps.yml's O13 entry when it happens.
+    s7_capabilities = [c for c in roster["capabilities"] if c["jtbd_step"] == "S7"]
+    assert s7_capabilities == [], "S7 gained coverage: {} -- update known-gaps.yml".format(
+        s7_capabilities
+    )
+
+
+def test_known_gaps_file_registers_o1_and_o13():
+    import os
+
+    import yaml
+
+    path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "references",
+        "known-gaps.yml",
+    )
+    with open(path) as fh:
+        data = yaml.safe_load(fh)
+    ids = {g["id"] for g in data["known_gaps"]}
+    assert ids == {"O1", "O13"}
+
+    o13 = next(g for g in data["known_gaps"] if g["id"] == "O13")
+    assert o13["jtbd_step"] == "S7"
+    assert o13["coverage"] == "none"
+
+    o1 = next(g for g in data["known_gaps"] if g["id"] == "O1")
+    assert o1["jtbd_step"] == "S1"
+    assert o1["coverage"] == "partial"
+    assert o1["covered_by"] in {c["capability_slug"] for c in yaml.safe_load(
+        open(os.path.join(os.path.dirname(path), "roster.yml"))
+    )["capabilities"]}
