@@ -1,0 +1,5 @@
+{"input_ref":"req-001","method":"deterministic","verdict":"matched","reason_code":"AGENT:prospect-score","model":"tier1","cost":0.0}
+{"input_ref":"req-002","method":"deterministic","verdict":"matched","reason_code":"AGENT:account-research-deep","model":"tier1","cost":0.0}
+{"input_ref":"req-003","method":"llm","verdict":"matched","reason_code":"AGENT:pov-synthesis","model":"claude-sonnet-5","cost":0.02}
+{"input_ref":"req-004","method":"deterministic","verdict":"matched","reason_code":"AGENT:account-research-deep","model":"tier1","cost":0.0}
+{"input_ref":"req-005","method":"deterministic","verdict":"matched","reason_code":"AGENT:deck-build","model":"tier1","cost":0.0}
