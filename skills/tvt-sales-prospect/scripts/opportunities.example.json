@@ -1,0 +1,12 @@
+[
+  {"id": "acct-radian", "motion": "expand", "meddpicc": [3,3,2,2,2,3,2,2], "calibration_n": 0,
+   "strategic_fit": 0.9, "deal_value": 250000, "winnability_factors": 0.7},
+  {"id": "acct-newlogo-1", "motion": "hunt", "meddpicc": [1,1,1,0,1,2,1,1], "calibration_n": 0,
+   "strategic_fit": 0.6, "deal_value": 400000, "winnability_factors": 0.3},
+  {"id": "acct-newlogo-2", "motion": "hunt", "meddpicc": [2,2,1,1,1,2,1,1], "calibration_n": 0,
+   "strategic_fit": 0.7, "deal_value": 300000, "winnability_factors": 0.4},
+  {"id": "acct-expand-2", "motion": "expand", "meddpicc": [2,1,2,1,1,2,1,1], "calibration_n": 0,
+   "strategic_fit": 0.5, "deal_value": 120000, "winnability_factors": 0.6},
+  {"id": "acct-newlogo-3", "motion": "hunt", "meddpicc": [0,1,0,0,1,1,0,1], "calibration_n": 0,
+   "strategic_fit": 0.4, "deal_value": 200000, "winnability_factors": 0.2}
+]

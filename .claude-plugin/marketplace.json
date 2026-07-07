@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "tvt-sales-agent",
+  "description": "Tavant fintech sales team -- dynamic agent dispatch over the sales/intel/pm/create skill family. One install, one entry point.",
+  "owner": {
+    "name": "Gordon Chan",
+    "email": "gordon.chan@tavant.com"
+  },
+  "plugins": [
+    {
+      "name": "tvt-sales-agent",
+      "description": "Ask in plain language; it dispatches to the right sales/intel/pm/create skill, or builds a temporary one for a genuine gap. AI drafts, you send.",
+      "category": "sales",
+      "source": "."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "tvt-sales-agent",
+  "version": "0.1.0",
+  "description": "Dynamic dispatcher over Tavant's fintech sales/intel/pm/create skill family. One entry point (tvt-sales-agent) instead of ~22 named skills -- ask in plain language, it figures out which skill(s) handle it. An Agent Factory fills genuine capability gaps with a temporary agent, gated behind a spike-tested, human-approved promotion path before anything becomes permanent. Fully self-contained: every dependency is vendored in (see VENDORED_FROM.md), zero cross-repo references.",
+  "author": {
+    "name": "Gordon Chan",
+    "email": "gordon.chan@tavant.com"
+  },
+  "keywords": [
+    "fintech",
+    "sales",
+    "enterprise-sales",
+    "agent-dispatch",
+    "tavant"
+  ],
+  "homepage": "https://gitlab.tavant.com/fintech-ai/sales-agent",
+  "license": "UNLICENSED"
+}

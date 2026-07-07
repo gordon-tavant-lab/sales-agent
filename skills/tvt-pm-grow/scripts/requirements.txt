@@ -1,0 +1,5 @@
+# tvt-pm-grow deterministic compute deps. Python 3.9 compatible.
+pyyaml>=6.0
+numpy>=1.24
+# statsmodels is used by the deferred Phase-2 forecaster only; core MVP runs without it.
+statsmodels>=0.14

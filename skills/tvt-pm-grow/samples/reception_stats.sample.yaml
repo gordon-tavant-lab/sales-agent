@@ -1,0 +1,146 @@
+# Sample: "QuickClose" — a fintech mortgage point-of-sale product, 5 cycles of reception.
+# Demonstrates full mode (cycles >= 4), a learning signal, and a SEEDED GOODHART CASE in cycle 5
+# (revenue subscore rises while sentiment + retention fall) so the guard fires.
+schema_version: 1
+
+product:
+  name: QuickClose
+  domain_profile: fintech
+  cycle: 5
+  seed_refs:
+    - path: ./specs/quickclose-init.md
+    - path: ./docs/vision.md
+    - path: ./notes/competitor-teardown.md
+
+metrics:
+  - cycle: 1
+    adoption:    { mau: 12000, wau: 6000,  new_signups: 1800, activation_rate: 0.34, retention_d30: 0.30 }
+    sentiment:   { nps: 14, review_avg: 3.6, social_mentions: 240, sentiment_score: 0.52 }
+    revenue:     { mrr: 42000,  arpu: 28, paid_conversion: 0.041, churn_rate: 0.072 }
+    competitive: { share_of_voice: 0.07, win_rate: 0.22, category_rank: 7 }
+  - cycle: 2
+    adoption:    { mau: 18000, wau: 9500,  new_signups: 2600, activation_rate: 0.38, retention_d30: 0.33 }
+    sentiment:   { nps: 19, review_avg: 3.8, social_mentions: 360, sentiment_score: 0.55 }
+    revenue:     { mrr: 58000,  arpu: 31, paid_conversion: 0.048, churn_rate: 0.066 }
+    competitive: { share_of_voice: 0.09, win_rate: 0.25, category_rank: 6 }
+  - cycle: 3
+    adoption:    { mau: 26000, wau: 14000, new_signups: 3500, activation_rate: 0.42, retention_d30: 0.36 }
+    sentiment:   { nps: 24, review_avg: 4.0, social_mentions: 520, sentiment_score: 0.58 }
+    revenue:     { mrr: 79000,  arpu: 34, paid_conversion: 0.055, churn_rate: 0.058 }
+    competitive: { share_of_voice: 0.12, win_rate: 0.29, category_rank: 5 }
+  - cycle: 4
+    adoption:    { mau: 34000, wau: 18500, new_signups: 4400, activation_rate: 0.45, retention_d30: 0.39 }
+    sentiment:   { nps: 29, review_avg: 4.2, social_mentions: 700, sentiment_score: 0.61 }
+    revenue:     { mrr: 104000, arpu: 37, paid_conversion: 0.063, churn_rate: 0.051 }
+    competitive: { share_of_voice: 0.15, win_rate: 0.32, category_rank: 4 }
+  - cycle: 5
+    # GOODHART: aggressive monetization pushed revenue up but hurt sentiment + retention.
+    adoption:    { mau: 39000, wau: 20000, new_signups: 4800, activation_rate: 0.44, retention_d30: 0.34 }
+    sentiment:   { nps: 22, review_avg: 3.9, social_mentions: 760, sentiment_score: 0.53 }
+    revenue:     { mrr: 141000, arpu: 44, paid_conversion: 0.079, churn_rate: 0.061 }
+    competitive: { share_of_voice: 0.18, win_rate: 0.34, category_rank: 3 }
+
+backlog:
+  - id: F-101
+    title: One-tap borrower doc upload
+    category: onboarding
+    jtbd: "When applying, I want to submit docs without a scanner so I finish in one sitting."
+    reach: 4800
+    impact: 2
+    effort: 6
+    kano: must_be
+    delta_value: 70000
+    cost: 30000
+    pillars: [adoption, sentiment]
+  - id: F-102
+    title: Transparent fee breakdown screen
+    category: trust
+    jtbd: "When reviewing my loan, I want to see every fee so I trust the offer."
+    reach: 3900
+    impact: 2
+    effort: 4
+    kano: attractive
+    delta_value: 60000
+    cost: 18000
+    pillars: [sentiment, competitive]
+  - id: F-103
+    title: Lender API auto-sync for rates
+    category: integrations
+    jtbd: "As a lender, I want rates to sync automatically so quotes are never stale."
+    reach: 2200
+    impact: 3
+    effort: 9
+    kano: one_dimensional
+    delta_value: 120000
+    cost: 52000
+    pillars: [revenue, competitive]
+  - id: F-104
+    title: Gamified application progress bar
+    category: onboarding
+    jtbd: "When applying, I want to see progress so I stay motivated to finish."
+    reach: 4800
+    impact: 0.5
+    effort: 3
+    kano: indifferent
+    delta_value: 15000
+    cost: 12000
+    pillars: [adoption]
+  - id: F-105
+    title: Upsell aggressive add-on insurance at checkout
+    category: pricing
+    jtbd: "As the business, I want to attach insurance so ARPU rises."
+    reach: 4800
+    impact: 1
+    effort: 4
+    kano: reverse
+    delta_value: 50000
+    cost: 16000
+    pillars: [revenue]
+  - id: F-106
+    title: In-app human loan advisor chat
+    category: trust
+    jtbd: "When stuck, I want to talk to a person so I don't abandon my application."
+    reach: 3000
+    impact: 2
+    effort: 7
+    kano: attractive
+    delta_value: 85000
+    cost: 40000
+    pillars: [sentiment, adoption]
+
+outcomes:
+  - id: F-007
+    category: onboarding
+    shipped_cycle: 2
+    success: true
+    predicted_delta_value: 40000
+    realized_delta_value: 47000
+    pillar_deltas: { adoption: 0.04, sentiment: 0.02, revenue: 0.01, competitive: 0.0 }
+  - id: F-008
+    category: trust
+    shipped_cycle: 3
+    success: true
+    predicted_delta_value: 35000
+    realized_delta_value: 41000
+    pillar_deltas: { adoption: 0.01, sentiment: 0.05, revenue: 0.01, competitive: 0.01 }
+  - id: F-009
+    category: pricing
+    shipped_cycle: 4
+    success: false
+    predicted_delta_value: 55000
+    realized_delta_value: 12000
+    pillar_deltas: { adoption: -0.01, sentiment: -0.04, revenue: 0.03, competitive: 0.0 }
+  - id: F-010
+    category: integrations
+    shipped_cycle: 4
+    success: true
+    predicted_delta_value: 90000
+    realized_delta_value: 98000
+    pillar_deltas: { adoption: 0.02, sentiment: 0.01, revenue: 0.04, competitive: 0.03 }
+  - id: F-011
+    category: onboarding
+    shipped_cycle: 3
+    success: true
+    predicted_delta_value: 30000
+    realized_delta_value: 33000
+    pillar_deltas: { adoption: 0.03, sentiment: 0.01, revenue: 0.01, competitive: 0.0 }

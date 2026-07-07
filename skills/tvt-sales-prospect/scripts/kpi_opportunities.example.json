@@ -1,0 +1,14 @@
+[
+  {"id": "acct-radian", "motion": "expand", "stage": "Closed Won", "amount": 250000,
+   "created_date": "2026-04-01", "close_date": "2026-05-28", "pov_cites_pattern": true,
+   "case_study_produced": true},
+  {"id": "acct-newlogo-1", "motion": "hunt", "stage": "Closed Won", "amount": 400000,
+   "created_date": "2026-03-10", "close_date": "2026-06-02", "pov_cites_pattern": false,
+   "case_study_produced": false},
+  {"id": "acct-newlogo-2", "motion": "hunt", "stage": "Negotiation/Review", "amount": 300000,
+   "created_date": "2026-05-15", "close_date": null, "pov_cites_pattern": true},
+  {"id": "acct-expand-2", "motion": "expand", "stage": "Proposal/Price Quote", "amount": 120000,
+   "created_date": "2026-05-20", "close_date": null},
+  {"id": "acct-newlogo-3", "motion": "hunt", "stage": "Closed Lost", "amount": 200000,
+   "created_date": "2026-02-01", "close_date": "2026-04-18", "pov_cites_pattern": false}
+]

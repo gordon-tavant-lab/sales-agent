@@ -1,0 +1,63 @@
+# tvt-gov-guard pattern bank — aligned with g-core/data/pii-patterns.yml format.
+# severity: block (must not pass) | redact (mask + pass). Workspace may extend.
+schema_version: "1.0"
+
+pii_patterns:
+  - id: email_address
+    pattern: '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
+    category: email
+    severity: redact
+    placeholder: "<EMAIL>"
+  - id: ssn_us
+    pattern: '\b\d{3}-\d{2}-\d{4}\b'
+    category: ssn
+    severity: redact
+    placeholder: "<SSN>"
+  - id: credit_card
+    pattern: '\b(?:\d[ -]?){13,16}\b'
+    category: credit_card
+    severity: redact
+    placeholder: "<CARD>"
+  - id: loan_number
+    pattern: '\b(loan|mortgage)[-_# :]*\d{6,16}\b'
+    category: loan_number
+    severity: redact
+    placeholder: "<LOAN_NO>"
+  - id: bank_account_long
+    pattern: '\bacct[-_# :]*\d{8,16}\b'
+    category: account_number
+    severity: redact
+    placeholder: "<ACCT>"
+  - id: routing_number
+    pattern: '\b(routing|aba)[- :]*\d{9}\b'
+    category: routing_number
+    severity: redact
+    placeholder: "<ROUTING>"
+  - id: phone_us
+    pattern: '\b(?:\+?1[-. ]?)?\(?\d{3}\)?[-. ]?\d{3}[-. ]?\d{4}\b'
+    category: phone
+    severity: redact
+    placeholder: "<PHONE>"
+  - id: dob
+    pattern: '\b(?:0[1-9]|1[0-2])/(?:0[1-9]|[12]\d|3[01])/(?:19|20)\d{2}\b'
+    category: dob
+    severity: redact
+    placeholder: "<DOB>"
+
+# Prompt-injection / jailbreak heuristics. severity: block.
+injection_patterns:
+  - id: ignore_instructions
+    pattern: '(?i)\b(ignore|disregard|forget)\b.{0,30}\b(previous|prior|above|earlier|all)\b.{0,20}\b(instruction|prompt|rule|context)'
+  - id: system_override
+    pattern: '(?i)\b(you are now|new system prompt|act as|pretend to be|developer mode|DAN)\b'
+  - id: reveal_system
+    pattern: '(?i)\b(reveal|print|show|repeat)\b.{0,20}\b(system prompt|your instructions|the prompt)\b'
+  - id: role_escape
+    pattern: '(?i)\b(disable|bypass|turn off|override)\b.{0,20}\b(guardrail|safety|filter|restriction)'
+
+# Refusal signatures — standardize, do not let them masquerade as content.
+refusal_patterns:
+  - id: cannot_determine
+    pattern: '(?i)\b(i cannot determine|insufficient (information|data)|unable to (verify|determine))\b'
+  - id: model_refusal
+    pattern: "(?i)\\b(i can'?t (help|assist|comply)|i'?m (unable|not able) to|as an ai)\\b"

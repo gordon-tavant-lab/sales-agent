@@ -1,0 +1,49 @@
+# Sample: a brand-new product with only 2 cycles of history → SPARSE MODE.
+# The reweighter must skip correlation learning and use domain-profile priors, flagging
+# low_confidence. Demonstrates honest degradation.
+schema_version: 1
+
+product:
+  name: NewLeaf
+  domain_profile: saas
+  cycle: 2
+  seed_refs:
+    - path: ./specs/newleaf-init.md
+
+metrics:
+  - cycle: 1
+    adoption:    { mau: 800, wau: 400, new_signups: 300, activation_rate: 0.31, retention_d30: 0.28 }
+    sentiment:   { nps: 8, review_avg: 3.4, social_mentions: 40, sentiment_score: 0.50 }
+    revenue:     { mrr: 4000, arpu: 22, paid_conversion: 0.030, churn_rate: 0.090 }
+    competitive: { share_of_voice: 0.02, win_rate: 0.15, category_rank: 12 }
+  - cycle: 2
+    adoption:    { mau: 1400, wau: 720, new_signups: 520, activation_rate: 0.35, retention_d30: 0.31 }
+    sentiment:   { nps: 12, review_avg: 3.6, social_mentions: 70, sentiment_score: 0.53 }
+    revenue:     { mrr: 7200, arpu: 24, paid_conversion: 0.037, churn_rate: 0.082 }
+    competitive: { share_of_voice: 0.03, win_rate: 0.18, category_rank: 11 }
+
+backlog:
+  - id: F-201
+    title: Self-serve onboarding checklist
+    category: onboarding
+    jtbd: "When I sign up, I want a guided checklist so I reach value fast."
+    reach: 520
+    impact: 2
+    effort: 4
+    kano: must_be
+    delta_value: 9000
+    cost: 4000
+    pillars: [adoption]
+  - id: F-202
+    title: Native Slack notifications
+    category: integrations
+    jtbd: "As a user, I want alerts in Slack so I don't miss updates."
+    reach: 400
+    impact: 1
+    effort: 3
+    kano: attractive
+    delta_value: 7000
+    cost: 3000
+    pillars: [adoption, sentiment]
+
+outcomes: []

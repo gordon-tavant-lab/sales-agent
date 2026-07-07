@@ -1,0 +1,8 @@
+[
+  {"claim_id": "c-metrics-1", "type": "meddpicc_dimension", "dimension": "metrics",
+   "extraction_confidence": 0.93, "contradicts_prior": false, "value": 2},
+  {"claim_id": "c-champion-1", "type": "meddpicc_dimension", "dimension": "champion",
+   "extraction_confidence": 0.4, "contradicts_prior": false, "value": 1},
+  {"claim_id": "c-pov-refuted-1", "type": "pov_validation", "extraction_confidence": 0.9,
+   "contradicts_prior": true, "value": "refuted"}
+]

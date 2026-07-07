@@ -1,0 +1,2 @@
+# tvt-pm-jtbd deps. Python 3.9 compatible.
+pyyaml>=6.0

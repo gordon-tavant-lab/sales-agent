@@ -1,0 +1,134 @@
+/* tvt-create-explainer — branded stylesheet
+   Matches the MI Lifecycle Consolidated View aesthetic.
+   Color = meaning: each domain owns one hue, used in every figure. */
+
+:root {
+  --navy:    #1B3A6B;   /* headings, table header rows, dark blocks */
+  --blue:    #2D6CB5;   /* domain 1 / kicker / accent rules */
+  --green:   #2E8B7F;   /* domain 2 */
+  --purple:  #7B4EA8;   /* domain 3 */
+  --ink:     #1f2933;   /* body text */
+  --muted:   #6b7280;   /* captions, header/footer */
+  --tint:    #eaf1fb;   /* light block fill */
+  --tint-2:  #f4f8fd;   /* alternating table row */
+  --line:    #c9d6e8;   /* block borders */
+}
+
+@page {
+  size: Letter;
+  margin: 22mm 20mm 20mm 20mm;
+  @top-left   { content: var(--doc-title); color: var(--muted); font-size: 9pt; }
+  @top-right  { content: var(--doc-tag);   color: var(--muted); font-size: 9pt; }
+  @bottom-left  { content: var(--doc-companion); color: var(--muted); font-size: 9pt; }
+  @bottom-right { content: "Page " counter(page); color: var(--muted); font-size: 9pt; }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  color: var(--ink);
+  font-size: 11.5pt;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Running header/footer for the headless-Chrome path (drawn in-flow per page is
+   hard; render.js injects a fixed running header/footer band instead). */
+.run-header, .run-footer {
+  position: fixed; left: 0; right: 0;
+  display: flex; justify-content: space-between;
+  font-size: 9pt; color: var(--muted);
+  padding: 0 20mm;
+}
+.run-header { top: 8mm; border-bottom: 0.5pt solid var(--line); padding-bottom: 4pt; }
+.run-footer { bottom: 8mm; }
+
+/* ---------- Cover ---------- */
+.cover { padding-top: 32mm; }
+.cover .kicker {
+  color: var(--blue); font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; font-size: 12pt; margin-bottom: 10pt;
+}
+.cover h1 {
+  color: var(--navy); font-size: 34pt; font-weight: 800;
+  margin: 0 0 4pt 0; line-height: 1.1;
+}
+.cover .parts {
+  color: var(--navy); font-size: 19pt; font-weight: 700; margin: 0 0 22pt 0;
+}
+.cover hr { border: 0; border-top: 2.5pt solid var(--blue); margin: 0 0 22pt 0; }
+.cover .subtitle { font-style: italic; color: var(--muted); font-size: 13pt; max-width: 80%; }
+.cover .companion { color: var(--ink); font-size: 11pt; margin-top: 18pt; }
+.cover { page-break-after: always; }
+
+/* ---------- Headings ---------- */
+h2 {
+  color: var(--navy); font-size: 18pt; font-weight: 800;
+  margin: 26pt 0 2pt 0; padding-bottom: 6pt;
+  border-bottom: 2pt solid var(--blue);
+}
+h2:first-of-type { margin-top: 0; }
+p { margin: 8pt 0; }
+strong { color: var(--ink); }
+
+/* ---------- Tables ---------- */
+table { width: 100%; border-collapse: collapse; margin: 12pt 0; font-size: 10.5pt; }
+thead th {
+  background: var(--navy); color: #fff; text-align: left;
+  padding: 9pt 12pt; font-weight: 700;
+}
+tbody td { padding: 9pt 12pt; border: 0.5pt solid var(--line); vertical-align: top; }
+tbody tr:nth-child(even) td { background: var(--tint-2); }
+
+/* ---------- Figures ---------- */
+figure { margin: 14pt 0 6pt 0; page-break-inside: avoid; }
+figcaption {
+  font-style: italic; color: var(--muted); font-size: 10pt;
+  text-align: center; margin-top: 10pt; padding: 0 8%;
+}
+
+/* swimlane */
+.swim { display: flex; gap: 14pt; }
+.swim .lane { flex: 1; }
+.swim .lane-head {
+  background: var(--navy); color: #fff; font-weight: 700;
+  text-align: center; padding: 9pt; border-radius: 4pt;
+}
+.swim .lane[data-c="blue"]   .lane-head { background: var(--navy); }
+.swim .lane[data-c="green"]  .lane-head { background: #1f6f64; }
+.swim .lane[data-c="purple"] .lane-head { background: #5e3a82; }
+.swim .cell {
+  background: var(--tint); border: 0.75pt solid var(--line);
+  border-radius: 5pt; text-align: center; padding: 10pt; margin-top: 9pt;
+}
+
+/* progressive chain */
+.chain { display: flex; gap: 6pt; align-items: stretch; }
+.chain .node { flex: 1; }
+.chain .node-head {
+  background: var(--navy); color: #fff; font-weight: 700;
+  text-align: center; padding: 9pt; border-radius: 4pt;
+}
+.chain .node-body {
+  background: var(--tint); border: 0.75pt solid var(--line);
+  border-radius: 5pt; text-align: center; padding: 10pt; margin-top: 9pt; font-size: 10pt;
+}
+.chain .arrow { align-self: center; color: var(--muted); font-size: 16pt; padding: 0 2pt; }
+
+/* venn (rendered as inline SVG by render.js; this styles the wrapper) */
+.venn { text-align: center; }
+.venn svg { max-width: 70%; height: auto; }
+
+/* callout box */
+.callout {
+  background: var(--tint); border-left: 5pt solid var(--navy);
+  padding: 14pt 18pt; margin: 16pt 0; page-break-inside: avoid;
+}
+.callout .callout-title { color: var(--navy); font-weight: 800; margin-bottom: 6pt; }
+.callout .callout-body { font-size: 12pt; }
+
+/* benefit / summary bullets */
+ul { margin: 8pt 0; padding-left: 18pt; }
+li { margin: 6pt 0; }
+li strong { color: var(--navy); }

@@ -1,0 +1,58 @@
+# Sample job-map: a mortgage borrower completing a loan application (domain-agnostic format).
+# The "job" is what they're ultimately trying to accomplish; "outcomes" are the measurable
+# success criteria they judge it by, each rated importance + current satisfaction (1-10).
+job:
+  statement: "Get approved for a home loan with confidence and minimal hassle"
+  executor: "first-time mortgage borrower"
+  context: "applying online, evenings, on a phone, no finance background"
+
+# the steps the executor moves through to get the job done (process capture)
+job_steps:
+  - id: S1
+    name: "Gather and submit documents"
+  - id: S2
+    name: "Understand what the loan will cost"
+  - id: S3
+    name: "Track application status"
+  - id: S4
+    name: "Resolve issues / answer lender questions"
+
+# desired outcomes — the metrics the borrower uses to judge success.
+# importance = how much they care (1-10); satisfaction = how well solutions do it today (1-10).
+outcomes:
+  - id: O1
+    job_step: S1
+    statement: "Minimize the time to assemble required documents"
+    importance: 9
+    satisfaction: 3
+    friction: "must scan paper docs; unclear which docs are needed; redo when wrong format"
+  - id: O2
+    job_step: S1
+    statement: "Minimize the chance of submitting a wrong or incomplete document"
+    importance: 9
+    satisfaction: 4
+    friction: "no validation until a human reviews days later"
+  - id: O3
+    job_step: S2
+    statement: "Increase confidence that the quoted cost won't change later"
+    importance: 10
+    satisfaction: 4
+    friction: "fees appear late; no transparent breakdown"
+  - id: O4
+    job_step: S3
+    statement: "Minimize the time to know the current application status"
+    importance: 7
+    satisfaction: 6
+    friction: "status only via calling the loan officer"
+  - id: O5
+    job_step: S4
+    statement: "Minimize the effort to answer a lender follow-up question"
+    importance: 8
+    satisfaction: 5
+    friction: "questions arrive by email, easy to miss"
+  - id: O6
+    job_step: S2
+    statement: "Minimize the time to compare loan options"
+    importance: 5
+    satisfaction: 8
+    friction: "comparison exists but few borrowers use it"

@@ -1,0 +1,2 @@
+# tvt-gov-guard deps. Python 3.9 compatible.
+pyyaml>=6.0
