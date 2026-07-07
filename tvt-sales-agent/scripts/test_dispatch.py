@@ -385,3 +385,127 @@ def test_attest_dispatch_uses_agent_prefixed_reason_code(roster, tmp_path):
     with open(ledger_path) as fh:
         record = json.loads(fh.readline())
     assert record["reason_code"] == "AGENT:pov-synthesis"
+
+
+# --- T9: narrowed (recombination-only) Agent Factory ---
+
+def test_recombination_prompt_lists_every_known_slug(roster):
+    from dispatch import build_recombination_prompt
+
+    prompt = build_recombination_prompt("a request nothing single-matches", roster)
+    for cap in roster["capabilities"]:
+        assert cap["capability_slug"] in prompt
+    assert "NONE" in prompt
+
+
+def test_validate_recombination_accepts_two_valid_slugs_and_sequences_them(roster):
+    from dispatch import validate_recombination_answer
+
+    result = validate_recombination_answer("account-research-deep,pov-synthesis", roster)
+    assert result["status"] == "recombination"
+    assert result["stages"] == [["account-research-deep"], ["pov-synthesis"]]
+
+
+def test_validate_recombination_rejects_none():
+    from dispatch import validate_recombination_answer
+    import yaml
+
+    roster = yaml.safe_load(open(os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "references", "roster.yml"
+    )))
+    assert validate_recombination_answer("NONE", roster)["status"] == "no_recombination"
+
+
+def test_validate_recombination_rejects_a_single_slug(roster):
+    # A single valid slug isn't recombination -- Tier 1/2 would already have caught that.
+    from dispatch import validate_recombination_answer
+
+    result = validate_recombination_answer("pov-synthesis", roster)
+    assert result["status"] == "no_recombination"
+
+
+def test_validate_recombination_rejects_the_whole_answer_if_any_slug_is_invented(roster):
+    # The core safety property, same as Tier 2: one invented slug invalidates the WHOLE
+    # answer, never partial-trust a mix of real + fabricated slugs.
+    from dispatch import validate_recombination_answer
+
+    result = validate_recombination_answer("pov-synthesis,a-slug-that-does-not-exist", roster)
+    assert result["status"] == "no_recombination"
+
+
+def test_propose_new_skill_writes_a_pending_suggestion(tmp_path):
+    from dispatch import propose_new_skill
+
+    path = str(tmp_path / "suggestions.jsonl")
+    record = propose_new_skill("detect a stalled pilot before it jeopardizes production", "no match", path)
+    assert record["status"] == "pending"
+    assert "stalled pilot" in record["request_text"]
+
+    with open(path) as fh:
+        lines = fh.readlines()
+    assert len(lines) == 1
+    assert json.loads(lines[0])["status"] == "pending"
+
+
+def test_factory_dispatch_with_valid_recombination_never_writes_a_suggestion(roster, tmp_path):
+    from dispatch import factory_dispatch
+
+    suggestions_path = str(tmp_path / "suggestions.jsonl")
+    result = factory_dispatch(
+        "research and then form a pov", roster,
+        recombination_answer="account-research-deep,pov-synthesis",
+        suggestions_path=suggestions_path,
+    )
+    assert result["status"] == "recombination"
+    assert not os.path.exists(suggestions_path)
+
+
+def test_factory_dispatch_with_no_recombination_suggests_instead_of_running_anything(roster, tmp_path):
+    from dispatch import factory_dispatch
+
+    suggestions_path = str(tmp_path / "suggestions.jsonl")
+    result = factory_dispatch(
+        "detect a stalled pilot before it jeopardizes production", roster,
+        recombination_answer="NONE",
+        suggestions_path=suggestions_path,
+    )
+    assert result["status"] == "suggested"
+    assert os.path.exists(suggestions_path)
+
+
+def test_factory_dispatch_genuine_gap_never_triggers_an_autonomous_ephemeral_run(roster, tmp_path):
+    # T9's explicit requirement: a genuine from-scratch gap (T4 measured this unreliable,
+    # 66/24/70%, never 90%) routes to the human suggestion path, NEVER an autonomous run.
+    # There is no code path in factory_dispatch() that invokes the Agent tool at all --
+    # this test proves the function's only possible outcomes are "recombination" (existing,
+    # already-vetted skills) or "suggested" (human queue). Nothing else exists to call.
+    from dispatch import factory_dispatch
+
+    suggestions_path = str(tmp_path / "suggestions.jsonl")
+    result = factory_dispatch(
+        "detect a stalled pilot before it jeopardizes production", roster,
+        recombination_answer=None,  # not yet asked -- the "haven't even tried recombination" path
+        suggestions_path=suggestions_path,
+    )
+    assert result["status"] == "suggested"
+    assert result["suggestion"]["status"] == "pending"
+
+
+def test_factory_dispatch_guardrail_outward_facing_request_never_gets_a_send_capable_path(roster, tmp_path):
+    # FR-010: agent creation must never become a side door around the "AI drafts, human
+    # sends" guardrail. Structural proof, not a keyword filter: every roster capability is
+    # outward_facing:false (T1's own invariant, tested separately), and factory_dispatch's
+    # only two outcomes are (a) recombine EXISTING roster members -- all outward_facing:
+    # false -- or (b) suggest to a human. There is no third outcome where a request like
+    # this reaches a tool capable of sending anything.
+    from dispatch import factory_dispatch
+
+    suggestions_path = str(tmp_path / "suggestions.jsonl")
+    result = factory_dispatch(
+        "send an email to Citi telling them we're raising prices", roster,
+        recombination_answer="NONE",  # no existing capability sends anything -- honest NONE
+        suggestions_path=suggestions_path,
+    )
+    assert result["status"] == "suggested"
+    for cap in roster["capabilities"]:
+        assert cap["outward_facing"] is False

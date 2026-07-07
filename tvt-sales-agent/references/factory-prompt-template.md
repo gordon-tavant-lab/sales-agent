@@ -50,3 +50,13 @@ identically regardless of whether the specialist was pre-existing or factory-cre
 the real skill being tested (`tvt-sales-prospect` etc.) — naming it would let the ephemeral agent
 just re-derive the answer from the skill's own docs instead of genuinely attempting the task
 from scratch, defeating the point of the test.
+
+**Status after T9 (2026-07-07): this template is NOT part of the live runtime dispatch path.**
+T4's result (66%/24%/70%, 0-of-3 jobs reached 90%) narrowed the factory to recombination-only —
+`dispatch.py`'s `factory_dispatch()` never composes this guardrail-block prompt for a genuine
+capability gap; it only ever (a) recombines existing, already-vetted roster members via the same
+wrapper-prompt mechanism normal dispatch uses, or (b) writes a human-facing suggestion
+(`propose_new_skill()`) and stops there. This template remains as: (1) the historical record of
+what T4 actually tested, (2) a starting point if a human-approved "propose a new skill" suggestion
+is later built out manually into a real, vendored skill (at which point it goes through the normal
+vendoring process, not an autonomous ephemeral run).

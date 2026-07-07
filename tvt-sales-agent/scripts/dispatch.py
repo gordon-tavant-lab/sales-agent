@@ -153,6 +153,113 @@ def attest_dispatch(
     return json.loads(proc.stdout)
 
 
+DEFAULT_SUGGESTIONS_PATH = os.path.join(_SCRIPTS_DIR, "..", "output", "skill-suggestions.jsonl")
+
+
+def build_recombination_prompt(request_text: str, roster: Dict[str, Any]) -> str:
+    """T9, narrowed to recombination-only per the T4 spike result (research-foundations.md:
+    Part A 66/24/70%, none reached 90% -- from-scratch synthesis is NOT reliable enough to
+    ship). This is Tier 2's closed-set pattern applied one level broader: instead of "which
+    ONE slug fits," ask "which TWO OR MORE existing slugs, combined, could plausibly answer
+    this." Still closed-set, still validated against the known list, still never allowed to
+    invent a new slug -- the only difference from Tier 2 is the answer shape (a set, not one).
+    """
+    slugs = known_slugs(roster)
+    lines = [
+        "This request did not match any single known capability. Could TWO OR MORE of the",
+        "capabilities below, used together (one feeding the next, or run in parallel and",
+        "combined), plausibly answer it? Only say yes if this is a genuine combination of",
+        "EXISTING capabilities -- not a new capability neither of them already provides.",
+        "",
+        "Request: {!r}".format(request_text),
+        "",
+        "Known slugs:",
+    ]
+    lines.extend("  - {}".format(s) for s in slugs)
+    lines.append("")
+    lines.append(
+        "Answer with a comma-separated list of 2 or more slugs from the list above (e.g. "
+        "\"account-research-deep,pov-synthesis\"), or the literal word NONE if no genuine "
+        "combination of existing capabilities fits."
+    )
+    return "\n".join(lines)
+
+
+def validate_recombination_answer(answer: str, roster: Dict[str, Any]) -> Dict[str, Any]:
+    """Deterministic validation, same discipline as Tier 2's validator: the LLM cannot
+    invent a slug, and a single valid slug is not recombination (Tier 1/2 would already
+    have caught that) -- ANY invalid slug in the list, or fewer than 2 valid slugs,
+    invalidates the whole answer to no_recombination. Never partial-trust an answer.
+    """
+    slugs = known_slugs(roster)
+    cleaned = answer.strip()
+    if cleaned.upper() == "NONE":
+        return {"status": "no_recombination"}
+
+    candidates = [s.strip() for s in cleaned.split(",") if s.strip()]
+    if len(candidates) < 2:
+        return {"status": "no_recombination", "note": "fewer than 2 slugs named"}
+    if any(c not in slugs for c in candidates):
+        return {
+            "status": "no_recombination",
+            "note": "answer named a slug outside the known list -- rejected in full, not partially trusted",
+        }
+
+    return {"status": "recombination", "stages": split_multi_job(candidates, roster)}
+
+
+def propose_new_skill(
+    request_text: str,
+    reason: str,
+    suggestions_path: str = DEFAULT_SUGGESTIONS_PATH,
+) -> Dict[str, Any]:
+    """The narrowed factory's ONLY path for a genuine capability gap (T4: from-scratch
+    synthesis measured unreliable, 66/24/70%, never 90%). This is a human-facing suggestion
+    queue -- NEVER an autonomous ephemeral agent run. Structurally satisfies FR-010: there
+    is no code path in this narrowed design that invokes a new, tool-granted agent for an
+    unknown request; the only options are (a) dispatch to an already-vetted roster member,
+    (b) recombine 2+ already-vetted roster members, or (c) suggest to a human. Nothing else.
+    """
+    os.makedirs(os.path.dirname(os.path.abspath(suggestions_path)), exist_ok=True)
+    record = {
+        "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "request_text": request_text,
+        "reason": reason,
+        "status": "pending",
+    }
+    with open(suggestions_path, "a") as fh:
+        fh.write(json.dumps(record, separators=(",", ":")) + "\n")
+    return record
+
+
+def factory_dispatch(
+    request_text: str,
+    roster: Dict[str, Any],
+    recombination_answer: Optional[str] = None,
+    suggestions_path: str = DEFAULT_SUGGESTIONS_PATH,
+) -> Dict[str, Any]:
+    """T9 orchestration, invoked only after both Tier 1 and Tier 2 (dispatch()/
+    resolve_tier1()) returned no_match -- never in parallel with a real match (FR-016
+    holds structurally: recombination/suggestion is the last resort by construction).
+
+    recombination_answer is the invoking agent's answer to build_recombination_prompt()'s
+    question -- None means "not yet asked" (caller should get the prompt first via
+    build_recombination_prompt(), same two-step pattern as Tier 2).
+    """
+    if recombination_answer is not None:
+        validated = validate_recombination_answer(recombination_answer, roster)
+        if validated["status"] == "recombination":
+            return validated
+        reason = "no recombination of existing capabilities found: {}".format(
+            validated.get("note", "LLM answered NONE")
+        )
+    else:
+        reason = "no roster match (Tier 1/2 exhausted), recombination not yet attempted"
+
+    suggestion = propose_new_skill(request_text, reason, suggestions_path)
+    return {"status": "suggested", "suggestion": suggestion}
+
+
 def dispatch(
     request_text: str,
     roster: Dict[str, Any],

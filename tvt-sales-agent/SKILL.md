@@ -23,20 +23,27 @@ eval:
 
 # tvt-sales-agent — Dynamic Sales Skill Dispatcher
 
-> **Current build stage (2026-07-07): dispatch (T0-T5) + JTBD/KPI alignment (T16-T17) done;
-> Stage 2's multi-job/ledger/factory/promotion mechanics (T6-T15) not yet.** This entry point
-> resolves ONE capability per request: Tier-1 deterministic matching first (`dispatch.py`, no
-> LLM call), then Tier-2 closed-set LLM-assisted matching if Tier 1 returns `no_match`/`tied`
-> (`--tier2-prompt` composes the question, the invoking agent answers it, `--tier2-validate`
-> checks the answer against the finite slug list -- an answer outside that list is treated as
-> `NONE`, never trusted at face value). It does **not yet** do multi-job requests (T6), the
-> Agent Factory (T9 -- gating spike is DONE, result: recombination-only, not from-scratch
-> synthesis; the build itself hasn't started), or promotion (T10/T11). A request neither tier
-> can resolve returns `no_match` rather than guessing; there is no factory fallback yet, by
-> design, so this gap is visible rather than silently absorbed. Every capability is tagged
-> with its real JTBD pipeline step (`jtbd_step`, T16) and `scripts/kpi_capture.py` (T17) can
-> report real progress against `g-mature-assess`'s KPI gate -- see `references/known-gaps.yml`
-> for the two pipeline steps with no roster coverage.
+> **Current build stage (2026-07-07): T0-T9 + T16-T17 done; T10-T15 (promotion + ops
+> polish) not yet.** Dispatch is 3-tier: Tier 1 deterministic keyword match (no LLM call),
+> Tier 2 closed-set LLM-assisted match (only if Tier 1 finds nothing), and the narrowed
+> Agent Factory (T9, only if Tier 2 also finds nothing) — which recombines 2+ EXISTING
+> roster capabilities via the same closed-set discipline, or, failing that, writes a
+> human-facing "propose a new skill" suggestion. **There is no path anywhere in this build
+> that invents a new agent on the spot and runs it autonomously** — T4's spike measured
+> that approach unreliable (66%/24%/70% against real skills' rubrics, never the 90% bar),
+> so it was never built; a genuine capability gap always becomes a human-reviewed
+> suggestion, never an autonomous action. Multi-job requests (T6) sequence via
+> `roster.yml`'s `depends_on` edges (dependent jobs run in order, independent jobs in
+> parallel) and always assemble a `{results, failures}` envelope (T7) so a partial failure
+> can never silently disappear. Every dispatch decision is attested via the real,
+> vendored `tvt-gov-attest` (T8) — you never need to log anything yourself. Every
+> capability is tagged with its real JTBD pipeline step (`jtbd_step`, T16) and
+> `scripts/kpi_capture.py` (T17) reports real progress against `g-mature-assess`'s KPI
+> gate. **Not yet built:** promotion of a factory-created ephemeral agent to a permanent
+> one (T10/T11 — moot for now anyway, since the narrowed factory never creates an
+> ephemeral agent to begin with; T10/T11 would apply to a future from-scratch factory if
+> one is ever built), manifest finalization (T12), guardrail regression check (T13),
+> Hermes registration (T14), install-completeness check (T15).
 
 Full architecture: `../plan.md`. Task-by-task build order: `../tasks.md`. This file is the
 thin routing surface — it computes nothing itself. `dispatch.py` does the matching,
@@ -66,22 +73,35 @@ pre-registered candidates for the eventual factory's "propose a new skill" path.
 `scripts/kpi_capture.py` produces a `readings.json` consumable by `g-mature-assess`'s
 existing KPI gate -- real values where data exists, honest `no_data` where it doesn't.
 
-## Dispatch Contract (current stage)
+## Dispatch Contract
 
-1. Run `scripts/dispatch.py "<the request text>"`.
+1. Run `python3 scripts/dispatch.py "<the request text>"` (this attests the decision
+   automatically via `tvt-gov-attest`, T8 -- you don't need to log anything yourself).
 2. If `status: matched` — invoke the named `invokes` skill (under `skills/<name>/`) via the
    `Agent` tool, `subagent_type: general-purpose`, with a thin wrapper prompt naming that
    skill and passing the original request. Return its output.
-3. If `status: no_match` — run `scripts/dispatch.py --tier2-prompt "<request>"` to get the
-   closed-set classification question, answer it yourself (you already have model access;
-   `dispatch.py` does not), then run `scripts/dispatch.py --tier2-validate "<your answer>"`.
-   If that validates to `matched`, proceed as step 2. If it's still `no_match` (including
-   when your own answer wasn't one of the listed slugs -- the validator does not trust it
-   at face value), say so plainly. There is no factory fallback yet -- T9 itself isn't built
-   yet (T4's gating spike is done; the result is recombination-only, not from-scratch).
-4. If `status: tied` — say so plainly, naming the tied capabilities. Do not silently pick
-   one. (Multi-job splitting, T6, replaces this for genuinely multi-job requests -- not
-   yet built.)
+3. If `status: multi_job` — the request named 2+ distinct capabilities (T6). `stages` is a
+   list of execution stages in order; within a stage, dispatch all listed capabilities as
+   parallel `Agent` calls (step 2's wrapper pattern, once each); wait for a stage to finish
+   before starting the next. Collect every individual result (each already in `{status,
+   capability_slug, output, notes}` shape) and assemble via `scripts/dispatch.py`'s
+   `assemble_envelope()` (T7) before synthesizing one final answer — a `failures` entry, if
+   any, is a **mandatory rendered section** of your response, never silently dropped.
+4. If `status: no_match` — first try Tier 2: run `scripts/dispatch.py --tier2-prompt
+   "<request>"`, answer the closed-set question yourself, then `--tier2-validate "<your
+   answer>"`. If that validates to `matched`, proceed as step 2.
+5. If Tier 2 also returns `no_match` — try recombination (T9, narrowed per the T4 spike
+   result): run the equivalent recombination prompt (`dispatch.py`'s
+   `build_recombination_prompt()`), answer it yourself, validate via
+   `validate_recombination_answer()`. If it validates to `status: recombination`, treat the
+   returned `stages` exactly like step 3 (multi-job) — every stage still only invokes
+   **existing, already-vetted roster members**, never a newly-invented agent.
+6. If recombination also finds nothing (`no_recombination`) — call `propose_new_skill()`
+   (T9) and say so plainly to the user. **This is the only outcome for a genuine capability
+   gap.** There is no path in this build that invents a new agent on the spot and runs it —
+   T4 measured that approach unreliable (66%/24%/70% against real skills' rubrics, never
+   90%), so it was never built. A gap becomes a human-reviewed suggestion, not an
+   autonomous action.
 
 ## Guardrails (already load-bearing, not deferred to a later stage)
 
