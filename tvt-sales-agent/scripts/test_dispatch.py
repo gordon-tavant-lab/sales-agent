@@ -118,3 +118,54 @@ def test_no_capability_is_marked_outward_facing(roster):
     # that should be reviewed deliberately, not slip in silently.
     for cap in roster["capabilities"]:
         assert cap["outward_facing"] is False, cap["capability_slug"]
+
+
+# --- T5: Tier-2 prompt composition + answer validation ---
+
+def test_tier2_prompt_lists_every_known_slug(roster):
+    from dispatch import build_tier2_prompt
+
+    prompt = build_tier2_prompt("make Citi think we're strategic", roster)
+    for cap in roster["capabilities"]:
+        assert cap["capability_slug"] in prompt
+    assert "NONE" in prompt
+
+
+def test_tier2_prompt_includes_the_request_text(roster):
+    from dispatch import build_tier2_prompt
+
+    prompt = build_tier2_prompt("a very specific request about Wells Fargo", roster)
+    assert "Wells Fargo" in prompt
+
+
+def test_tier2_validate_accepts_known_slug(roster):
+    from dispatch import validate_tier2_answer
+
+    result = validate_tier2_answer("pov-synthesis", roster)
+    assert result["status"] == "matched"
+    assert result["capability_slug"] == "pov-synthesis"
+    assert result["method"] == "llm"
+
+
+def test_tier2_validate_rejects_none(roster):
+    from dispatch import validate_tier2_answer
+
+    result = validate_tier2_answer("NONE", roster)
+    assert result["status"] == "no_match"
+
+
+def test_tier2_validate_rejects_invented_slug(roster):
+    # The core safety property: the LLM cannot invent a new slug at this step
+    # (plan.md SS1.1 point 2) -- any answer outside the finite list is no_match,
+    # never trusted at face value.
+    from dispatch import validate_tier2_answer
+
+    result = validate_tier2_answer("a-slug-that-does-not-exist", roster)
+    assert result["status"] == "no_match"
+
+
+def test_tier2_validate_is_case_and_whitespace_tolerant_for_none(roster):
+    from dispatch import validate_tier2_answer
+
+    assert validate_tier2_answer("  none  ", roster)["status"] == "no_match"
+    assert validate_tier2_answer("None", roster)["status"] == "no_match"
