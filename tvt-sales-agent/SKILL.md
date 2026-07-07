@@ -45,8 +45,10 @@ eval:
 > one is ever built), manifest finalization (T12), guardrail regression check (T13),
 > Hermes registration (T14), install-completeness check (T15).
 
-Full architecture: `../plan.md`. Task-by-task build order: `../tasks.md`. This file is the
-thin routing surface — it computes nothing itself. `dispatch.py` does the matching,
+Full architecture, task-by-task build order, and research foundations live in the outer
+Workspace repo's `specs/008-sales-agent-swarm/{plan,tasks,research-foundations}.md` -- not
+inside this package (a marketplace install of this repo alone doesn't include them; see
+`../CAPABILITIES.md`). This file is the thin routing surface — it computes nothing itself. `dispatch.py` does the matching,
 `references/roster.yml` is the capability manifest, and every capability it dispatches to
 is a vendored copy under `skills/` (see `../VENDORED_FROM.md`) — never a reference to
 `sales-skills.git` or any `g-*` original (hard rule, `plan.md` §1).

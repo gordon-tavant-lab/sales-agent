@@ -1,7 +1,7 @@
 {
   "name": "tvt-sales-agent",
   "version": "0.1.0",
-  "description": "Dynamic dispatcher over Tavant's fintech sales/intel/pm/create skill family. One entry point (tvt-sales-agent) instead of ~22 named skills -- ask in plain language, it figures out which skill(s) handle it. An Agent Factory fills genuine capability gaps with a temporary agent, gated behind a spike-tested, human-approved promotion path before anything becomes permanent. Fully self-contained: every dependency is vendored in (see VENDORED_FROM.md), zero cross-repo references.",
+  "description": "Dynamic dispatcher over Tavant's fintech sales/intel/pm/create skill family. One entry point (tvt-sales-agent) instead of 22 named skills -- ask in plain language, a 2-tier deterministic-then-LLM-assisted matcher routes it. Multi-job requests split and sequence automatically. A genuine capability gap (no single skill fits) gets a recombination attempt across existing skills first; if that fails too, it's queued as a human-reviewed suggestion -- never an autonomous new agent (a real gating spike measured that approach unreliable, 66/24/70% against real skills, before it was ever built). Every dispatch decision is attested via a real, vendored audit ledger. Fully self-contained: every dependency is vendored in (see VENDORED_FROM.md), zero cross-repo references.",
   "author": {
     "name": "Gordon Chan",
     "email": "gordon.chan@tavant.com"
