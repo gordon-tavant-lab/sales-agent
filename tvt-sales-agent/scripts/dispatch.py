@@ -9,10 +9,21 @@ so a later caller can decide what happens next, rather than guessing here.
 No multi-job splitting (T6), no LLM fallback (T5), no factory (T9) in this file yet —
 see tasks.md Stage 1 for the staged build order this mirrors.
 """
+import hashlib
+import json
+import os
+import subprocess
 import sys
-from typing import Any, Dict, List
+import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from common import emit, fail, load_roster, known_slugs
+
+_SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
+_PACKAGE_ROOT = os.path.dirname(os.path.dirname(_SCRIPTS_DIR))  # .../src
+ATTEST_SCRIPT = os.path.join(_PACKAGE_ROOT, "skills", "tvt-gov-attest", "scripts", "attest.py")
+DEFAULT_LEDGER = os.path.join(_SCRIPTS_DIR, "..", "output", "invocation-ledger.jsonl")
 
 
 def match_tier1(request_text: str, roster: Dict[str, Any]) -> Dict[str, Any]:
@@ -104,6 +115,58 @@ def assemble_envelope(individual_results: List[Dict[str, Any]]) -> Dict[str, Any
         else:
             results.append(r)
     return {"results": results, "failures": failures}
+
+
+def attest_dispatch(
+    result: Dict[str, Any],
+    request_text: str,
+    ledger_path: str = DEFAULT_LEDGER,
+    mode: str = "poc",
+) -> Optional[Dict[str, Any]]:
+    """T8: the deterministic orchestrator itself writes the ledger entry via the vendored
+    tvt-gov-attest -- never left to an agent to remember to self-report (plan.md S3.5).
+    Only a real dispatch decision ("matched") gets attested; no_match/tied/multi_job
+    carry nothing to attribute a capability_slug to yet. Returns the attest.py output, or
+    None if there was nothing to attest for this result.
+    """
+    if result.get("status") != "matched":
+        return None
+
+    reason_code = "AGENT:{}".format(result["capability_slug"])
+    method = "llm" if result.get("method") == "llm" else "deterministic"
+    decision_id = str(uuid.uuid4())
+    input_ref = hashlib.sha256(request_text.encode("utf-8")).hexdigest()[:16]
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    os.makedirs(os.path.dirname(os.path.abspath(ledger_path)), exist_ok=True)
+    proc = subprocess.run(
+        [sys.executable, ATTEST_SCRIPT, "--append", "--ledger", ledger_path,
+         "--mode", mode, "--decision-id", decision_id, "--input-ref", input_ref,
+         "--method", method, "--verdict", "dispatched", "--reason-code", reason_code,
+         "--model", "tier1" if method == "deterministic" else "tier2-llm-assisted",
+         "--cost", "0.0", "--ts", ts],
+        capture_output=True, text=True, timeout=30,
+    )
+    if proc.returncode != 0:
+        fail("attest --append failed: {}".format(proc.stderr))
+        return None
+    return json.loads(proc.stdout)
+
+
+def dispatch(
+    request_text: str,
+    roster: Dict[str, Any],
+    ledger_path: str = DEFAULT_LEDGER,
+    attest: bool = True,
+) -> Dict[str, Any]:
+    """The real top-level entry point (T8): resolve_tier1(), then attest the decision if
+    one was actually made. attest=False exists only for tests that want to check
+    resolution without writing to a real ledger file.
+    """
+    result = resolve_tier1(request_text, roster)
+    if attest:
+        attest_dispatch(result, request_text, ledger_path)
+    return result
 
 
 def resolve_tier1(request_text: str, roster: Dict[str, Any]) -> Dict[str, Any]:

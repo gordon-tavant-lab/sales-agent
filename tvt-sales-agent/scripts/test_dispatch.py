@@ -1,4 +1,5 @@
 """Tests for dispatch.py Tier-1 matching (T2 scope). Python 3.9 compatible."""
+import json
 import os
 import sys
 
@@ -312,3 +313,75 @@ def test_assemble_envelope_a_failure_can_never_silently_disappear():
     assert len(envelope["failures"]) == 1
     assert len(envelope["results"]) == 2
     assert sum(len(v) for v in envelope.values()) == len(individual)
+
+
+# --- T8: ledger wiring via real tvt-gov-attest ---
+
+def test_dispatch_writes_a_real_ledger_entry_for_a_matched_request(roster, tmp_path):
+    from dispatch import dispatch as run_dispatch
+
+    ledger_path = str(tmp_path / "ledger.jsonl")
+    result = run_dispatch("who should I focus on this week", roster, ledger_path=ledger_path)
+    assert result["status"] == "matched"
+
+    with open(ledger_path) as fh:
+        records = [json.loads(line) for line in fh]
+    assert len(records) == 1
+    assert records[0]["reason_code"] == "AGENT:prospect-score"
+    assert records[0]["method"] == "deterministic"
+    assert records[0]["verdict"] == "dispatched"
+
+
+def test_dispatch_writes_nothing_for_no_match(roster, tmp_path):
+    from dispatch import dispatch as run_dispatch
+
+    ledger_path = str(tmp_path / "ledger.jsonl")
+    result = run_dispatch("what's the weather in Austin today", roster, ledger_path=ledger_path)
+    assert result["status"] == "no_match"
+    assert not os.path.exists(ledger_path)
+
+
+def test_dispatch_writes_nothing_for_multi_job_at_the_top_level(roster, tmp_path):
+    # The top-level "multi_job" result itself isn't a single capability dispatch -- each
+    # STAGE's actual invocation (once T9/orchestration runs them) attests individually.
+    # dispatch() itself has no single capability_slug to attribute here.
+    from dispatch import dispatch as run_dispatch
+
+    ledger_path = str(tmp_path / "ledger.jsonl")
+    result = run_dispatch("build a pov and also prep for my meeting", roster, ledger_path=ledger_path)
+    assert result["status"] == "multi_job"
+    assert not os.path.exists(ledger_path)
+
+
+def test_ledger_entries_are_chain_verifiable_by_real_tvt_gov_attest(roster, tmp_path):
+    import subprocess
+
+    from dispatch import ATTEST_SCRIPT
+    from dispatch import dispatch as run_dispatch
+
+    ledger_path = str(tmp_path / "ledger.jsonl")
+    run_dispatch("who should I focus on this week", roster, ledger_path=ledger_path)
+    run_dispatch("build a POV for Citi", roster, ledger_path=ledger_path)
+
+    proc = subprocess.run(
+        [sys.executable, ATTEST_SCRIPT, "--verify", "--ledger", ledger_path],
+        capture_output=True, text=True, timeout=30,
+    )
+    assert proc.returncode == 0, proc.stderr
+    verdict = json.loads(proc.stdout)
+    assert verdict["intact"] is True
+    assert verdict["records"] == 2
+
+
+def test_attest_dispatch_uses_agent_prefixed_reason_code(roster, tmp_path):
+    from dispatch import attest_dispatch, resolve_tier1
+
+    ledger_path = str(tmp_path / "ledger.jsonl")
+    result = resolve_tier1("build a POV for Citi", roster)
+    attest_result = attest_dispatch(result, "build a POV for Citi", ledger_path=ledger_path)
+    assert attest_result is not None
+    assert attest_result["appended"] == 1
+
+    with open(ledger_path) as fh:
+        record = json.loads(fh.readline())
+    assert record["reason_code"] == "AGENT:pov-synthesis"
