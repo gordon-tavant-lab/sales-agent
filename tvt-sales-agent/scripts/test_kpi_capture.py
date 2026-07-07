@@ -104,6 +104,15 @@ def test_readings_are_genuinely_consumable_by_g_mature_assess_kpi_eval(roster, t
     output through g-mature-assess's real kpi_eval.py as a subprocess and confirm it
     produces a real verdict, not an error. This is the actual point of FR-018 --
     consuming the existing KPI gate, not just producing JSON that looks like its shape.
+
+    IMPORTANT -- this is a soft, environment-specific integration check, NOT a packaging
+    dependency: this package (tvt-sales-agent) does not require g-mature-assess to build,
+    install, or run (verified in T15's self-containment check, and kpi_capture.py's own
+    production code never references this path -- only this one optional test does). This
+    check only runs where Gordon's personal project-level g-mature-assess skill happens to
+    be present (his own dev machine), to prove the readings.json shape is genuinely
+    consumable, not just plausible-looking. It skips cleanly everywhere else, including for
+    every other user who installs this package via the marketplace.
     """
     import subprocess
     import sys as _sys
@@ -112,11 +121,17 @@ def test_readings_are_genuinely_consumable_by_g_mature_assess_kpi_eval(roster, t
     readings_path = tmp_path / "readings.json"
     readings_path.write_text(json.dumps(result["readings"]))
 
+    # Gordon's personal dev-machine path ONLY -- see the docstring above. Never assumed
+    # present; this is the one and only place this package's code or tests ever look here.
     kpi_eval_path = os.path.expanduser(
         "~/Workspace/.claude/skills/g-mature-assess/scripts/kpi_eval.py"
     )
     if not os.path.exists(kpi_eval_path):
-        pytest.skip("g-mature-assess not present in this environment")
+        pytest.skip(
+            "g-mature-assess not present in this environment (expected for anyone who "
+            "isn't Gordon's own dev machine) -- this test is an optional cross-check, "
+            "not a packaging requirement; see the docstring above."
+        )
 
     proc = subprocess.run(
         [_sys.executable, kpi_eval_path, "--domain", "sales-gtm", "--stage", "2",
