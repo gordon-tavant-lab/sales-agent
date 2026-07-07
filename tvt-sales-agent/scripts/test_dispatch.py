@@ -219,3 +219,96 @@ def test_known_gaps_file_registers_o1_and_o13():
     assert o1["covered_by"] in {c["capability_slug"] for c in yaml.safe_load(
         open(os.path.join(os.path.dirname(path), "roster.yml"))
     )["capabilities"]}
+
+
+# --- T6: multi-job splitter ---
+
+def test_split_multi_job_sequences_a_dependent_pair(roster):
+    from dispatch import split_multi_job
+
+    stages = split_multi_job(["account-research-deep", "pov-synthesis"], roster)
+    assert stages == [["account-research-deep"], ["pov-synthesis"]]
+
+
+def test_split_multi_job_parallelizes_an_independent_pair(roster):
+    from dispatch import split_multi_job
+
+    stages = split_multi_job(["deck-build", "visual-design"], roster)
+    assert len(stages) == 1
+    assert set(stages[0]) == {"deck-build", "visual-design"}
+
+
+def test_split_multi_job_ignores_out_of_set_dependencies(roster):
+    # pov-synthesis depends_on account-research-deep, but if THIS request only names
+    # pov-synthesis + meeting-prep-pack, account-research-deep isn't part of the matched
+    # set and must not appear in the sequencing at all.
+    from dispatch import split_multi_job
+
+    stages = split_multi_job(["pov-synthesis", "meeting-prep-pack"], roster)
+    all_slugs = [s for stage in stages for s in stage]
+    assert "account-research-deep" not in all_slugs
+    assert stages == [["pov-synthesis"], ["meeting-prep-pack"]]
+
+
+def test_resolve_tier1_transforms_tied_into_multi_job(roster):
+    from dispatch import resolve_tier1
+
+    result = resolve_tier1("build a pov and also prep for my meeting", roster)
+    assert result["status"] == "multi_job"
+    assert result["stages"] == [["pov-synthesis"], ["meeting-prep-pack"]]
+
+
+def test_resolve_tier1_passes_through_single_match_unchanged(roster):
+    from dispatch import resolve_tier1
+
+    result = resolve_tier1("who should I focus on this week", roster)
+    assert result["status"] == "matched"
+    assert result["capability_slug"] == "prospect-score"
+
+
+# --- T7: response-envelope assembly ---
+
+def test_assemble_envelope_splits_ok_and_failed():
+    from dispatch import assemble_envelope
+
+    individual = [
+        {"status": "ok", "capability_slug": "account-research-deep", "output": "dossier text", "notes": ""},
+        {"status": "failed", "capability_slug": "pov-synthesis", "output": None, "notes": "upstream research incomplete"},
+    ]
+    envelope = assemble_envelope(individual)
+    assert len(envelope["results"]) == 1
+    assert envelope["results"][0]["capability_slug"] == "account-research-deep"
+    assert len(envelope["failures"]) == 1
+    assert envelope["failures"][0]["capability_slug"] == "pov-synthesis"
+
+
+def test_assemble_envelope_all_ok_has_empty_failures():
+    from dispatch import assemble_envelope
+
+    individual = [{"status": "ok", "capability_slug": "deck-build", "output": "deck.pptx", "notes": ""}]
+    envelope = assemble_envelope(individual)
+    assert envelope["failures"] == []
+    assert len(envelope["results"]) == 1
+
+
+def test_assemble_envelope_rejects_malformed_result_loudly():
+    from dispatch import assemble_envelope
+
+    with pytest.raises(ValueError, match="missing required field"):
+        assemble_envelope([{"status": "ok", "capability_slug": "deck-build"}])  # missing output/notes
+
+
+def test_assemble_envelope_a_failure_can_never_silently_disappear():
+    # The whole point of T7: a failure mixed into a multi-job result must survive the
+    # envelope split, never get dropped.
+    from dispatch import assemble_envelope
+
+    individual = [
+        {"status": "ok", "capability_slug": "pov-synthesis", "output": "pov text", "notes": ""},
+        {"status": "failed", "capability_slug": "meeting-prep-pack", "output": None, "notes": "tool error"},
+        {"status": "ok", "capability_slug": "deck-build", "output": "deck.pptx", "notes": ""},
+    ]
+    envelope = assemble_envelope(individual)
+    assert len(envelope["failures"]) == 1
+    assert len(envelope["results"]) == 2
+    assert sum(len(v) for v in envelope.values()) == len(individual)
