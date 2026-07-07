@@ -1,0 +1,152 @@
+# roster.yml — capability manifest for tvt-sales-agent's dispatcher (dispatch.py)
+#
+# Each entry is one capability the dispatcher can route a request to. `invokes` names the
+# vendored skill (skills/<name>/, see VENDORED_FROM.md) the Agent tool wraps with a thin
+# prompt (plan.md §2). `trigger_patterns` are Tier-1 deterministic keyword/regex matches
+# (plan.md §1.1) — case-insensitive substring match on the incoming request. `depends_on`
+# encodes job sequencing for multi-job requests (plan.md §1.2) — the direct data encoding
+# of spec006 §3's spine order. `outward_facing: false` for every entry below: nothing in
+# this roster sends, posts, or transmits anything — all of it is draft/research/analysis
+# output, per the "AI drafts, human sends" guardrail (spec006 §7, spec008 FR-009/FR-010).
+
+config:
+  promotion_threshold: 3          # invocation count that triggers a promotion suggestion (FR-007)
+  promotion_rejection_multiplier: 2   # re-surface only once count reaches rejected_at_count * this
+
+capabilities:
+
+  # --- Intel family (9) ---
+  - capability_slug: account-research-deep
+    invokes: tvt-intel-deep
+    trigger_patterns: ["research", "deep dive", "build intel on", "what do we know about", "prep for a first meeting"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: account-research-customer
+    invokes: tvt-intel-customer
+    trigger_patterns: ["5-step", "full customer intelligence", "financial structure", "platform mapping"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: account-dossier
+    invokes: tvt-intel-dossier
+    trigger_patterns: ["dossier", "full story", "relationship map", "account story"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: account-qbr
+    invokes: tvt-intel-qbr
+    trigger_patterns: ["qbr", "quarterly review", "strategic review topics"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: competitor-fanout
+    invokes: tvt-intel-fanout
+    trigger_patterns: ["research all the competitors", "fan out on these names", "dig into everyone mentioned"]
+    depends_on: [account-research-deep]
+    outward_facing: false
+
+  - capability_slug: intel-factcheck
+    invokes: tvt-intel-factcheck
+    trigger_patterns: ["fact check", "verify the intel", "audit the research"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: intel-pipeline
+    invokes: tvt-intel-pipeline
+    trigger_patterns: ["full research on", "run the pipeline on", "intel pipeline", "prospect research"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: prospect-scan
+    invokes: tvt-intel-dispatch
+    trigger_patterns: ["research multiple prospects", "parallel research", "scan target list", "find new", "new prospects"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: pattern-extraction
+    invokes: tvt-intel-flywheel
+    trigger_patterns: ["patterns across clients", "extract a playbook", "reusable ip", "what should become an accelerator"]
+    depends_on: []
+    outward_facing: false
+
+  # --- Sales family (6) ---
+  - capability_slug: prospect-score
+    invokes: tvt-sales-prospect
+    trigger_patterns: ["who should i focus on", "who to call", "who should i call", "confidence score", "ranked shortlist", "capacity"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: pov-synthesis
+    invokes: tvt-sales-pov
+    trigger_patterns: ["build a pov", "point of view", "business value hypothesis", "draft a pov for"]
+    depends_on: [account-research-deep]
+    outward_facing: false
+
+  - capability_slug: meeting-prep-pack
+    invokes: tvt-sales-pack
+    trigger_patterns: ["prep for", "presales pack", "get me ready for", "build a presales pack"]
+    depends_on: [pov-synthesis]
+    outward_facing: false
+
+  - capability_slug: engagement-proposal
+    invokes: tvt-sales-engagement-proposal
+    trigger_patterns: ["engagement proposal", "workshop proposal", "proposal doc"]
+    depends_on: [pov-synthesis]
+    outward_facing: false
+
+  - capability_slug: sales-distill
+    invokes: tvt-sales-distill
+    trigger_patterns: ["distill sales", "refine sales playbook", "sharpen sales patterns"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: pitch-content-strategy
+    invokes: tvt-sales-pitch
+    trigger_patterns: ["sales deck content", "pitch strategy", "what should the slides say", "content brief"]
+    depends_on: []
+    outward_facing: false
+
+  # --- PM family (2) ---
+  - capability_slug: product-opportunity-scoring
+    invokes: tvt-pm-jtbd
+    trigger_patterns: ["jobs to be done", "jtbd", "job map", "where should we improve", "what's underserved"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: product-roadmap-grow
+    invokes: tvt-pm-grow
+    trigger_patterns: ["market dominance", "product roadmap", "grow this product", "what to build and what to say"]
+    depends_on: [product-opportunity-scoring]
+    outward_facing: false
+
+  # --- Create family (4) + tavantize ---
+  - capability_slug: deck-build
+    invokes: tvt-create-deck
+    trigger_patterns: ["build a deck", "create a presentation", "make slides", "improve this deck"]
+    depends_on: [pitch-content-strategy]
+    outward_facing: false
+
+  - capability_slug: visual-design
+    invokes: tvt-create-design
+    trigger_patterns: ["design a poster", "web ui", "landing page", "dashboard design", "generative art"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: explainer-doc
+    invokes: tvt-create-explainer
+    trigger_patterns: ["explainer", "one-pager on how", "make the case for", "domain explainer"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: pptx-build
+    invokes: tvt-create-pptx
+    trigger_patterns: ["pptx", "powerpoint", "screenshot slides", "export slides to images"]
+    depends_on: []
+    outward_facing: false
+
+  - capability_slug: tavantize-brand
+    invokes: tvt-tavantize
+    trigger_patterns: ["tavantize", "tavant template", "tavant branding", "tavant deck"]
+    depends_on: []
+    outward_facing: false
