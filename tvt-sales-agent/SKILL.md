@@ -15,22 +15,28 @@ eval:
   mode: gate
   depth: standard
   note: this router computes nothing itself -- routing is deterministic (dispatch.py), the
-    invoked skill owns its own eval gate. See spec008 research-foundations.md for why the
-    agent-factory piece specifically is NOT asserted safe without the T4 spike.
+    invoked skill owns its own eval gate. T4's gating spike (run 2026-07-07, see
+    research-foundations.md) found the from-scratch factory concept does NOT meet the bar
+    (66/24/70%, none reached 90%) -- the factory is narrowed to recombination-only, not
+    asserted safe as originally scoped.
 ---
 
 # tvt-sales-agent — Dynamic Sales Skill Dispatcher
 
-> **Current build stage (T1-T5 of Stage 1 done; T4 gating spike + Stage 2 not yet).** This
-> entry point resolves ONE capability per request: Tier-1 deterministic matching first
-> (`dispatch.py`, no LLM call), then Tier-2 closed-set LLM-assisted matching if Tier 1
-> returns `no_match`/`tied` (`--tier2-prompt` composes the question, the invoking agent
-> answers it, `--tier2-validate` checks the answer against the finite slug list -- an
-> answer outside that list is treated as `NONE`, never trusted at face value). It does
-> **not yet** do multi-job requests (T6), the Agent Factory for genuine capability gaps
-> (T9 -- blocked on T4's gating spike, not yet run), or promotion (T10/T11). A request
-> neither tier can resolve returns `no_match` rather than guessing; there is no factory
-> fallback yet, by design, so this gap is visible rather than silently absorbed.
+> **Current build stage (2026-07-07): dispatch (T0-T5) + JTBD/KPI alignment (T16-T17) done;
+> Stage 2's multi-job/ledger/factory/promotion mechanics (T6-T15) not yet.** This entry point
+> resolves ONE capability per request: Tier-1 deterministic matching first (`dispatch.py`, no
+> LLM call), then Tier-2 closed-set LLM-assisted matching if Tier 1 returns `no_match`/`tied`
+> (`--tier2-prompt` composes the question, the invoking agent answers it, `--tier2-validate`
+> checks the answer against the finite slug list -- an answer outside that list is treated as
+> `NONE`, never trusted at face value). It does **not yet** do multi-job requests (T6), the
+> Agent Factory (T9 -- gating spike is DONE, result: recombination-only, not from-scratch
+> synthesis; the build itself hasn't started), or promotion (T10/T11). A request neither tier
+> can resolve returns `no_match` rather than guessing; there is no factory fallback yet, by
+> design, so this gap is visible rather than silently absorbed. Every capability is tagged
+> with its real JTBD pipeline step (`jtbd_step`, T16) and `scripts/kpi_capture.py` (T17) can
+> report real progress against `g-mature-assess`'s KPI gate -- see `references/known-gaps.yml`
+> for the two pipeline steps with no roster coverage.
 
 Full architecture: `../plan.md`. Task-by-task build order: `../tasks.md`. This file is the
 thin routing surface — it computes nothing itself. `dispatch.py` does the matching,
@@ -52,7 +58,13 @@ phrasing — see `scripts/test_dispatch.py` for the full covered/uncovered list)
 | Build a deck | `tvt-sales-agent "build a deck for <target>"` |
 | Score product opportunities | `tvt-sales-agent "what's underserved for <client>'s process"` |
 
-The full list of 22 capabilities and their trigger patterns is `references/roster.yml`.
+The full list of 22 capabilities and their trigger patterns is `references/roster.yml` --
+each tagged with the real JTBD pipeline step (S1-S9) it serves, per
+`specs/006-g-sales-engine/docs/jtbd-pipeline-gaps.md`'s scoring. `references/known-gaps.yml`
+registers the two steps with weak/no coverage (S7 Adopt: none; S1 signal-scan: partial) as
+pre-registered candidates for the eventual factory's "propose a new skill" path.
+`scripts/kpi_capture.py` produces a `readings.json` consumable by `g-mature-assess`'s
+existing KPI gate -- real values where data exists, honest `no_data` where it doesn't.
 
 ## Dispatch Contract (current stage)
 
@@ -65,7 +77,8 @@ The full list of 22 capabilities and their trigger patterns is `references/roste
    `dispatch.py` does not), then run `scripts/dispatch.py --tier2-validate "<your answer>"`.
    If that validates to `matched`, proceed as step 2. If it's still `no_match` (including
    when your own answer wasn't one of the listed slugs -- the validator does not trust it
-   at face value), say so plainly. There is no factory fallback yet (T9, blocked on T4).
+   at face value), say so plainly. There is no factory fallback yet -- T9 itself isn't built
+   yet (T4's gating spike is done; the result is recombination-only, not from-scratch).
 4. If `status: tied` — say so plainly, naming the tied capabilities. Do not silently pick
    one. (Multi-job splitting, T6, replaces this for genuinely multi-job requests -- not
    yet built.)
