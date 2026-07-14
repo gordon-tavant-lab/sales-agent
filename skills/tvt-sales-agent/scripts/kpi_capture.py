@@ -102,7 +102,7 @@ def sales_prospect_readings(opportunities_file: Optional[str], quota_hunt: float
         }
 
     kpi_script_dir = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))),
         "skills",
         "tvt-sales-prospect",
         "scripts",

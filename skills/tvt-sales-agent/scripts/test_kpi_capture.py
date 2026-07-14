@@ -14,7 +14,7 @@ EXAMPLE_LEDGER = os.path.join(
     os.path.dirname(FIXTURES_DIR), "output", "invocation-ledger.example.jsonl"
 )
 EXAMPLE_OPPORTUNITIES = os.path.join(
-    os.path.dirname(os.path.dirname(FIXTURES_DIR)),
+    os.path.dirname(os.path.dirname(os.path.dirname(FIXTURES_DIR))),
     "skills",
     "tvt-sales-prospect",
     "scripts",

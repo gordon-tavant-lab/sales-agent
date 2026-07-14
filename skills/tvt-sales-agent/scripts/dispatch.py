@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional
 from common import emit, fail, load_roster, known_slugs
 
 _SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
-_PACKAGE_ROOT = os.path.dirname(os.path.dirname(_SCRIPTS_DIR))  # .../src
+_PACKAGE_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(_SCRIPTS_DIR)))  # .../src
 ATTEST_SCRIPT = os.path.join(_PACKAGE_ROOT, "skills", "tvt-gov-attest", "scripts", "attest.py")
 DEFAULT_LEDGER = os.path.join(_SCRIPTS_DIR, "..", "output", "invocation-ledger.jsonl")
 

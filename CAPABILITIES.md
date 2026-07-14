@@ -23,11 +23,11 @@ organized by the real 9-step JTBD pipeline model (`specs/006-g-sales-engine/docs
 | S8 — Renew | `account-qbr`, `product-roadmap-grow` |
 | S9 — Review — capture IP | `pattern-extraction`, `sales-distill` |
 
-Full trigger patterns + dependency edges: `tvt-sales-agent/references/roster.yml`.
+Full trigger patterns + dependency edges: `skills/tvt-sales-agent/references/roster.yml`.
 
 ## Known gaps
 
-`tvt-sales-agent/references/known-gaps.yml` pre-registers two pipeline steps with weak/no
+`skills/tvt-sales-agent/references/known-gaps.yml` pre-registers two pipeline steps with weak/no
 coverage (O13: S7, zero coverage; O1: S1, partial coverage) as candidates for the "propose a
 new skill" suggestion path, sourced from a real, separate JTBD gap-analysis document rather
 than waiting for usage to rediscover them.
@@ -52,7 +52,7 @@ the dispatch/factory/setup mechanism itself, not as roster dispatch targets.
 
 ## Governance & measurement
 
-- **Invocation Ledger** (`tvt-sales-agent/output/invocation-ledger.jsonl`) — every dispatch
+- **Invocation Ledger** (`skills/tvt-sales-agent/output/invocation-ledger.jsonl`) — every dispatch
   decision attested via the real, vendored `tvt-gov-attest`, tamper-evident and chain-verifiable.
 - **`kpi_capture.py`** — produces a `readings.json` consumable by `g-mature-assess`'s real
   KPI gate for the sales-gtm domain (7 KPIs). Real values where data exists, honest `no_data`

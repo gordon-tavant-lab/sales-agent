@@ -22,7 +22,7 @@ construction, not just by test coverage that happens to pass today.
 
 ## Structural evidence (not just test coverage)
 
-- **No send-capable code path exists.** `grep -n "subprocess.run" tvt-sales-agent/scripts/*.py`
+- **No send-capable code path exists.** `grep -n "subprocess.run" skills/tvt-sales-agent/scripts/*.py`
   returns exactly 2 call sites, both invoking the vendored `tvt-gov-attest/scripts/attest.py`
   (a governance ledger write). Nothing in this package calls `smtplib`, an HTTP client, or any
   other mechanism capable of transmitting anything externally. This is true independent of what

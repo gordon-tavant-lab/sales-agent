@@ -221,7 +221,7 @@ def resolve_escalation(
         import uuid
         from datetime import datetime, timezone
 
-        package_root = os.path.dirname(os.path.dirname(_SCRIPTS_DIR))  # .../src
+        package_root = os.path.dirname(os.path.dirname(os.path.dirname(_SCRIPTS_DIR)))  # .../src
         attest_script = os.path.join(package_root, "skills", "tvt-gov-attest", "scripts", "attest.py")
         reason_code = "AGENT:{}".format(gap_key.replace(" ", "-")[:60])
         proc = subprocess.run(
